@@ -16,9 +16,9 @@ class Dict(dict):
 	>>> d1.x
 	100
 	>>> d1.y = 200
-	>>> d1.['y']
+	>>> d1['y']
 	200
-	>>> d2 Dict(a=1, b=2, c='3')
+	>>> d2 = Dict(a=1, b=2, c='3')
 	>>> d2.c
 	'3'
 	>>> d2['empty']
@@ -28,7 +28,7 @@ class Dict(dict):
 	>>> d2.empty
 	Traceback (most recent call last):
 		...
-	AttributeError: 'Dict' object has no attribute 'empty'
+	AttributeError: ("'Dict' object has no attribute %s", 'empty')
 	>>> d3 = Dict(('a', 'b', 'c'), (1, 2, 3))
 	>>> d3.a
 	1
@@ -114,6 +114,7 @@ class _DbCtx(threading.local):
 		return not self.connection is None
 
 	def init(self):
+		logging.info('open lazy connection...')
 		self.connection = _LasyConnection()
 		self.transactions = 0
 
@@ -145,9 +146,10 @@ def create_engine(user, password, database, host = '127.0.0.1', port = 3306, **k
 	if engine is not None:
 		raise DBError('Engine is already initialized.')
 	params = dict(user=user, password=password, database=database, host=host, port=port)
-	defaults = dict(use_unicode=True, charset='utf8', collation='utf8-general_ci', autocommit=False)
+	#defaults = dict(use_unicode=True, charset='utf8', collation='utf8-general_ci', autocommit=False)
+	defaults = dict(use_unicode=True, autocommit=False)
 	for k, v in defaults.iteritems():
-		params[k] = kw.pop(k, v)
+		params[k] = kw.pop(k, v) 
 	params.update(kw)
 	params['buffered'] = True
 	engine = _Engine(lambda: mysql.connector.connect(**params))
@@ -176,7 +178,7 @@ class _ConnectionCtx(object):
 	def __exit__(self, exctype, excvalue, traceback):
 		global _db_ctx
 		if self.should_cleanup:
-			_db.ctx.sleanup()
+			_db_ctx.cleanup()
 
 def connection():
 	'''
@@ -282,7 +284,7 @@ def with_transaction(func):
 	... 	r = update('update user set passwd=? where id=?', name.upper(), id)
 	... 	if rollback:
 	... 		raise StandardError('will cause rollback...')
-	>>> update_profile(8000, 'Julia', False)
+	>>> update_profile(8080, 'Julia', False)
 	>>> select_one('select * from user where id=?', 8080).passwd
 	u'JULIA'
 	>>> update_profile(9090, 'Robert', True)
@@ -292,7 +294,7 @@ def with_transaction(func):
 	>>> select('select * from user where id=?', 9090)
 	[]
 	'''
-	@functools.wrap(func)
+	@functools.wraps(func)
 	def _wrapper(*args, **kw):
 		_start =time.time()
 		with _TransactionCtx():
@@ -311,7 +313,7 @@ def _select(sql, first, *args):
 		if cursor.description:
 			names = [x[0] for x in cursor.description]
 		if first:
-			value = cursor.fetchone()
+			values = cursor.fetchone()
 			if not values:
 				return None
 			return Dict(names, values)
@@ -342,7 +344,7 @@ def _update(sql, *args):
 	sql = sql.replace('?', '%s')
 	logging.info('SQL:%s, ARGS: %s' % (sql, args))
 	try:
-		cursor = _db_ctx.connection().cursor()
+		cursor = _db_ctx.connection.cursor()
 		cursor.execute(sql, args)
 		r = cursor.rowcount
 		if _db_ctx.transactions == 0 :
@@ -386,10 +388,10 @@ def update(sql, *args):
 	u'michael@test.org'
 	>>> u2.passwd
 	u'123456'
-	>>> update('update user set email=?, passed=? where id=?', 'michael@example.org, '654321', 1000)
+	>>> update('update user set email=?, passwd=? where id=?', 'michael@example.org', '654321', 1000)
 	1
 	>>> u3 = select_one('select * from user where id=?', 1000)
-	>>> u3.mail
+	>>> u3.email
 	u'michael@example.org'
 	>>> u3.passwd
 	u'654321'
@@ -400,8 +402,8 @@ def update(sql, *args):
 	
 if __name__=='__main__':
 	logging.basicConfig(level=logging.DEBUG)
-	create_engine('root', 'www-data', 'test')
+	create_engine('www-data', 'www-data', 'test')
 	update('drop table if exists user')
-	update('create table user (id int primary key, name text, email text, passwd text, last_modified real')
+	update('create table user (id int primary key, name text, email text, passwd text, last_modified real)')
 	import doctest
-	dectest.testmod()
+	doctest.testmod()
