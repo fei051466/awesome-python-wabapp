@@ -240,7 +240,7 @@ class Model(dict):
 		Find by where clause and return one result. If multiple results found,
 		only the fist one returned. If no result found, return None.
 		'''
-		d = db.select_one('select * from %s where %s=?' % (cls.__table__, cls.__primary_key__.name), pk)
+		d = db.select_one('select * from %s %s' % (cls.__table__, where), *args)
 		return cls(**d) if d else None
 
 	@classmethod
