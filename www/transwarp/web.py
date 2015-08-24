@@ -1459,7 +1459,7 @@ class WSGIApplication(object):
 					if args:
 						return fn(*args)
 				raise notfound()
-			if request_method='POST':
+			if request_method=='POST':
 				fn = self._post_static.get(path_info, None)
 				if fn:
 					return fn()
@@ -1507,13 +1507,13 @@ class WSGIApplication(object):
 				return [
 					r'''<html><body><h1>500 Internal Server Error</h1><div style="font-family:Monaco, Menlo, Consolas, 'Courier New', monospace;"><pre>''',
 					stacks.replace('<', '&lt;').replace('>', '&gt;'),
-					</pre></div></body><html>]
-				finally:
-					del ctx.application
-					del ctx.request
-					del ctx.response
+					'</pre></div></body><html>']
+			finally:
+				del ctx.application
+				del ctx.request
+				del ctx.response
 
-			return wsgi
+		return wsgi
 
 
 
