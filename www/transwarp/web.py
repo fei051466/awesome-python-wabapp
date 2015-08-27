@@ -576,7 +576,7 @@ class StaticFileRoute(object):
 		if not os.path.isfile(fpath):
 			raise nnotfound()
 		fext = os.path.splitext(fpath)[1]
-		ctx.response.content_type = minetypes.types_map.get(fext.lower(), 'application/octet-stream')
+		ctx.response.content_type = mimetypes.types_map.get(fext.lower(), 'application/octet-stream')
 		return _static_file_generator(fpath)
 
 def favicon_handler():
@@ -1445,7 +1445,7 @@ class WSGIApplication(object):
 			self._get_dynamic.append(StaticFileRoute())
 		self._running = True
 
-		_application = Dict(document=self._document_root)
+		_application = Dict(document_root=self._document_root)
 
 		def fn_route():
 			request_method = ctx.request.request_method
