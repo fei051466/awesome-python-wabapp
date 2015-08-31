@@ -260,7 +260,7 @@ class Model(dict):
 		return [cls(**d) for d in L]
 
 	@classmethod
-	def count_all(cls, where, *args):
+	def count_all(cls):
 		'''
 		Find by 'select count(pk) from table' and return integer.
 		'''
