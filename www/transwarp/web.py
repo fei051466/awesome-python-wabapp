@@ -1420,7 +1420,7 @@ class WSGIApplication(object):
 			if route.method=='GET':
 				self._get_static[route.path] = route
 			if route.method=='POST':
-				self._post_static[route.paht] = route
+				self._post_static[route.path] = route
 		else:
 			if route.method=='GET':
 				self._get_dynamic[route.path] = route
@@ -1500,7 +1500,7 @@ class WSGIApplication(object):
 					return  ['<html><body><h1>500 Internal Server Error</h1></body><html>']
 				exc_type, exc_value, exc_traceback = sys.exc_info()
 				fp = StringIO()
-				trackback.print_exception(exc_type, exc_value, exc_traceback, file=fp)
+				traceback.print_exception(exc_type, exc_value, exc_traceback, file=fp)
 				stacks = fp.getvalue()
 				fp.close()
 				start_response('500 Internal Server Error', [])

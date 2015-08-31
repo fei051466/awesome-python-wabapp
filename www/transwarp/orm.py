@@ -231,7 +231,7 @@ class Model(dict):
 		'''
 		Get by primary key
 		'''
-		d = db.select_one('select * from %s where %s =?' % (cls.__table__, cls.__primary_key__.name), pk)
+		d = db.select_one('select * from %s where %s=?' % (cls.__table__, cls.__primary_key__.name), pk)
 		return cls(**d) if d else None
 
 	@classmethod
