@@ -1423,9 +1423,9 @@ class WSGIApplication(object):
 				self._post_static[route.path] = route
 		else:
 			if route.method=='GET':
-				self._get_dynamic[route.path] = route
+				self._get_dynamic.append(route)
 			if route.method=='POST':
-				self._post_dynamic[route.path] = route
+				self._post_dynamic.append(route)
 		logging.info('Add route: %s' % str(route))
 
 	def add_interceptor(self, func):
